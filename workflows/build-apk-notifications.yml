@@ -1,0 +1,40 @@
+name: Build Android APK (experimental - with notifications)
+
+# EXPERIMENTAL. Adds real Android notifications (daily reminders and letters that arrive while the app is closed) through the
+# alpha plugin flet-android-notifications, which needs a manual Gradle / manifest patch (tools/patch_android.py).
+# Use the normal "Build Android APK" workflow first; try this one only if you want background notifications.
+on:
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      UV_PYTHON: "3.14"
+      PYTHONUTF8: "1"
+      FLET_CLI_LOG_FORMAT: github
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Download the Vazirmatn font
+        run: python3 tools/get_fonts.py || echo "font download failed - the app will use the system font"
+
+      - name: Use the notifications variant of pyproject.toml
+        run: cp pyproject.notifications.toml pyproject.toml
+
+      - name: First build (generates the Flutter project; may fail in Gradle - that is expected)
+        run: uv run flet build apk --yes --verbose || true
+
+      - name: Patch Gradle + AndroidManifest
+        run: python3 tools/patch_android.py
+
+      - name: Build APK
+        run: uv run flet build apk --yes --verbose
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shokraneh-apk-notifications
+          path: build/apk
+          if-no-files-found: error

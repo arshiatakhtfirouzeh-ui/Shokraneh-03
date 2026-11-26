@@ -1,0 +1,51 @@
+name: Build iOS (unsigned, for sideloading)
+
+# EXPERIMENTAL / UNTESTED.
+# Builds on a GitHub macOS machine, so you do not need a Mac.
+# The result is an UNSIGNED .ipa. You then install it on your iPhone with
+# Sideloadly (Windows/macOS) or AltStore, which sign it with your own free
+# Apple ID. A free Apple ID gives apps that expire after 7 days.
+# Run: GitHub -> Actions -> "Build iOS (unsigned, for sideloading)" -> Run workflow.
+on:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    env:
+      UV_PYTHON: "3.14"
+      PYTHONUTF8: "1"
+      FLET_CLI_LOG_FORMAT: github
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Download the Vazirmatn font (optional)
+        run: python3 tools/get_fonts.py || echo "font download failed - the app will use the system font"
+
+      # Without signing credentials flet only produces an .xcarchive; that is expected.
+      - name: Build (xcarchive)
+        continue-on-error: true
+        run: uv run flet build ipa --yes --verbose
+
+      - name: Pack unsigned .ipa from the archive
+        run: |
+          set -e
+          APP=$(find . -type d -name "*.app" -path "*xcarchive/Products/Applications/*" | head -n 1)
+          if [ -z "$APP" ]; then
+            APP=$(find . -type d -name "Runner.app" | head -n 1)
+          fi
+          echo "Found app bundle: $APP"
+          test -n "$APP"
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          (cd out && zip -qry shokraneh-unsigned.ipa Payload)
+          ls -lh out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shokraneh-ios-unsigned
+          path: out/shokraneh-unsigned.ipa
+          if-no-files-found: error
