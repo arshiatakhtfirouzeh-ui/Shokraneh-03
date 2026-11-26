@@ -1,0 +1,21 @@
+[project]
+name = "shokraneh"
+version = "1.2.0"
+description = "Shokraneh (شکرانه) — a calm gratitude journal, Persian / English"
+requires-python = ">=3.12"
+dependencies = [
+  "flet>=1.1.0,<1.2",
+  "certifi",
+]
+
+[tool.flet]
+org = "app.shokraneh"
+product = "Shokraneh"
+company = "Shokraneh"
+copyright = "Shokraneh"
+
+[tool.flet.app]
+path = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,31 @@
+# EXPERIMENTAL variant: adds real Android notifications (daily reminders + letters that arrive while the app is closed).
+# Used only by .github/workflows/build-apk-notifications.yml, which copies this file over pyproject.toml in CI.
+# The plugin (flet-android-notifications, "Alpha") needs a manual Gradle / manifest patch -> tools/patch_android.py.
+[project]
+name = "shokraneh"
+version = "1.2.0"
+description = "Shokraneh (شکرانه) — a calm gratitude journal, Persian / English"
+requires-python = ">=3.12"
+dependencies = [
+  "flet>=1.1.0,<1.2",
+  "flet-android-notifications",
+  "certifi",
+]
+
+[tool.flet]
+org = "app.shokraneh"
+product = "Shokraneh"
+company = "Shokraneh"
+copyright = "Shokraneh"
+
+[tool.flet.app]
+path = "src"
+exclude = ["flet_android_notifications"]
+
+[tool.flet.dev_packages]
+flet-android-notifications = "flet_android_notifications"
+
+[tool.flet.android.permission]
+"android.permission.POST_NOTIFICATIONS" = true
+"android.permission.SCHEDULE_EXACT_ALARM" = true
+"android.permission.RECEIVE_BOOT_COMPLETED" = true

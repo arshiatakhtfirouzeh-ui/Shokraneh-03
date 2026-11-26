@@ -1,0 +1,3 @@
+# Desktop run:  pip install -r requirements.txt   then   python src/main.py
+flet[all]>=1.1.0,<1.2
+certifi
